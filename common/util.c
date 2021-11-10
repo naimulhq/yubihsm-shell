@@ -34,7 +34,7 @@ bool set_component(unsigned char *in_ptr, const BIGNUM *bn, int element_len) {
     return false;
   }
 
-  memset(in_ptr, 0, (size_t)(element_len - real_len));
+  memset(in_ptr, 0, (size_t) (element_len - real_len));
   in_ptr += element_len - real_len;
   return BN_bn2bin(bn, in_ptr) > 0;
 }
@@ -444,11 +444,18 @@ bool algo2type(yh_algorithm algorithm, yh_object_type *type) {
     case YH_ALGO_RSA_OAEP_SHA256:
     case YH_ALGO_RSA_OAEP_SHA384:
     case YH_ALGO_RSA_OAEP_SHA512:
+    case YH_ALGO_RSA_PKCS1_DECRYPT:
     case YH_ALGO_EC_ECDSA_SHA256:
     case YH_ALGO_EC_ECDSA_SHA384:
     case YH_ALGO_EC_ECDSA_SHA512:
     case YH_ALGO_EC_ED25519:
       *type = YH_ASYMMETRIC_KEY;
+      break;
+
+    case YH_ALGO_AES128:
+    case YH_ALGO_AES192:
+    case YH_ALGO_AES256:
+      *type = YH_SYMMETRIC_KEY;
       break;
 
     case YH_ALGO_HMAC_SHA1:
@@ -488,7 +495,8 @@ bool algo2type(yh_algorithm algorithm, yh_object_type *type) {
     case YH_ALGO_MGF1_SHA256:
     case YH_ALGO_MGF1_SHA384:
     case YH_ALGO_MGF1_SHA512:
-    default:
+    case YH_ALGO_AES_ECB:
+    case YH_ALGO_AES_CBC:
       return false;
   }
 

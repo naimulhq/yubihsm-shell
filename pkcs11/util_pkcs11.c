@@ -679,6 +679,17 @@ static CK_RV get_attribute_secret_key(CK_ATTRIBUTE_TYPE type,
           default:
             return CKR_FUNCTION_FAILED;
         }
+      } else if (object->type == YH_SYMMETRIC_KEY) {
+        switch (object->algorithm) {
+          case YH_ALGO_AES128:
+          case YH_ALGO_AES192:
+          case YH_ALGO_AES256:
+            *((CK_KEY_TYPE *) value) = CKK_AES;
+            break;
+
+          default:
+            return CKR_FUNCTION_FAILED;
+        }
       } else {
         return CKR_FUNCTION_FAILED;
       }
@@ -1428,6 +1439,7 @@ static CK_RV get_attribute(CK_ATTRIBUTE_TYPE type, yh_object_descriptor *object,
 
     case YH_WRAP_KEY:
     case YH_HMAC_KEY:
+    case YH_SYMMETRIC_KEY:
       return get_attribute_secret_key(type, object, value, length);
 
     case YH_ASYMMETRIC_KEY:
