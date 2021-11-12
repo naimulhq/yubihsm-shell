@@ -78,9 +78,14 @@ static void add_mech(CK_MECHANISM_TYPE *buf, CK_ULONG_PTR count,
   *count = *count + 1;
 }
 
+static int compare_mech(const void *p1, const void *p2) {
+  const CK_MECHANISM_TYPE *a = p1;
+  const CK_MECHANISM_TYPE *b = p2;
+  return *a > *b ? 1 : (*a < *b ? -1 : 0);
+}
+
 CK_RV get_mechanism_list(yubihsm_pkcs11_slot *slot,
-                         CK_MECHANISM_TYPE_PTR pMechanismList,
-                         CK_ULONG_PTR count) {
+                         CK_MECHANISM_TYPE_PTR buffer, CK_ULONG_PTR items) {
 
   if (slot->n_algorithms == 0) {
     slot->n_algorithms = sizeof(slot->algorithms) / sizeof(slot->algorithms[0]);
@@ -92,56 +97,54 @@ CK_RV get_mechanism_list(yubihsm_pkcs11_slot *slot,
     }
   }
 
-  CK_MECHANISM_TYPE buffer[128]; // NOTE: this is a bit hardcoded, but much more
-  // than what we might add below.
-  CK_ULONG items = 0;
+  *items = 0;
 
   for (size_t i = 0; i < slot->n_algorithms; i++) {
     switch (slot->algorithms[i]) {
       case YH_ALGO_RSA_PKCS1_SHA1:
-        add_mech(buffer, &items, CKM_RSA_PKCS);
-        add_mech(buffer, &items, CKM_SHA1_RSA_PKCS);
+        add_mech(buffer, items, CKM_RSA_PKCS);
+        add_mech(buffer, items, CKM_SHA1_RSA_PKCS);
         break;
 
       case YH_ALGO_RSA_PKCS1_SHA256:
-        add_mech(buffer, &items, CKM_RSA_PKCS);
-        add_mech(buffer, &items, CKM_SHA256_RSA_PKCS);
+        add_mech(buffer, items, CKM_RSA_PKCS);
+        add_mech(buffer, items, CKM_SHA256_RSA_PKCS);
         break;
 
       case YH_ALGO_RSA_PKCS1_SHA384:
-        add_mech(buffer, &items, CKM_RSA_PKCS);
-        add_mech(buffer, &items, CKM_SHA384_RSA_PKCS);
+        add_mech(buffer, items, CKM_RSA_PKCS);
+        add_mech(buffer, items, CKM_SHA384_RSA_PKCS);
         break;
 
       case YH_ALGO_RSA_PKCS1_SHA512:
-        add_mech(buffer, &items, CKM_RSA_PKCS);
-        add_mech(buffer, &items, CKM_SHA512_RSA_PKCS);
+        add_mech(buffer, items, CKM_RSA_PKCS);
+        add_mech(buffer, items, CKM_SHA512_RSA_PKCS);
         break;
 
       case YH_ALGO_RSA_PSS_SHA1:
-        add_mech(buffer, &items, CKM_RSA_PKCS_PSS);
-        add_mech(buffer, &items, CKM_SHA1_RSA_PKCS_PSS);
+        add_mech(buffer, items, CKM_RSA_PKCS_PSS);
+        add_mech(buffer, items, CKM_SHA1_RSA_PKCS_PSS);
         break;
 
       case YH_ALGO_RSA_PSS_SHA256:
-        add_mech(buffer, &items, CKM_RSA_PKCS_PSS);
-        add_mech(buffer, &items, CKM_SHA256_RSA_PKCS_PSS);
+        add_mech(buffer, items, CKM_RSA_PKCS_PSS);
+        add_mech(buffer, items, CKM_SHA256_RSA_PKCS_PSS);
         break;
 
       case YH_ALGO_RSA_PSS_SHA384:
-        add_mech(buffer, &items, CKM_RSA_PKCS_PSS);
-        add_mech(buffer, &items, CKM_SHA384_RSA_PKCS_PSS);
+        add_mech(buffer, items, CKM_RSA_PKCS_PSS);
+        add_mech(buffer, items, CKM_SHA384_RSA_PKCS_PSS);
         break;
 
       case YH_ALGO_RSA_PSS_SHA512:
-        add_mech(buffer, &items, CKM_RSA_PKCS_PSS);
-        add_mech(buffer, &items, CKM_SHA512_RSA_PKCS_PSS);
+        add_mech(buffer, items, CKM_RSA_PKCS_PSS);
+        add_mech(buffer, items, CKM_SHA512_RSA_PKCS_PSS);
         break;
 
       case YH_ALGO_RSA_2048:
       case YH_ALGO_RSA_3072:
       case YH_ALGO_RSA_4096:
-        add_mech(buffer, &items, CKM_RSA_PKCS_KEY_PAIR_GEN);
+        add_mech(buffer, items, CKM_RSA_PKCS_KEY_PAIR_GEN);
         break;
 
       case YH_ALGO_EC_P224:
@@ -152,65 +155,79 @@ CK_RV get_mechanism_list(yubihsm_pkcs11_slot *slot,
       case YH_ALGO_EC_BP256:
       case YH_ALGO_EC_BP384:
       case YH_ALGO_EC_BP512:
-        add_mech(buffer, &items, CKM_EC_KEY_PAIR_GEN);
+        add_mech(buffer, items, CKM_EC_KEY_PAIR_GEN);
         break;
 
       case YH_ALGO_HMAC_SHA1:
-        add_mech(buffer, &items, CKM_SHA_1_HMAC);
-        add_mech(buffer, &items, CKM_GENERIC_SECRET_KEY_GEN);
+        add_mech(buffer, items, CKM_SHA_1_HMAC);
+        add_mech(buffer, items, CKM_GENERIC_SECRET_KEY_GEN);
         break;
 
       case YH_ALGO_HMAC_SHA256:
-        add_mech(buffer, &items, CKM_SHA256_HMAC);
-        add_mech(buffer, &items, CKM_GENERIC_SECRET_KEY_GEN);
+        add_mech(buffer, items, CKM_SHA256_HMAC);
+        add_mech(buffer, items, CKM_GENERIC_SECRET_KEY_GEN);
         break;
 
       case YH_ALGO_HMAC_SHA384:
-        add_mech(buffer, &items, CKM_SHA384_HMAC);
-        add_mech(buffer, &items, CKM_GENERIC_SECRET_KEY_GEN);
+        add_mech(buffer, items, CKM_SHA384_HMAC);
+        add_mech(buffer, items, CKM_GENERIC_SECRET_KEY_GEN);
         break;
 
       case YH_ALGO_HMAC_SHA512:
-        add_mech(buffer, &items, CKM_SHA512_HMAC);
-        add_mech(buffer, &items, CKM_GENERIC_SECRET_KEY_GEN);
+        add_mech(buffer, items, CKM_SHA512_HMAC);
+        add_mech(buffer, items, CKM_GENERIC_SECRET_KEY_GEN);
         break;
 
       case YH_ALGO_EC_ECDSA_SHA1:
-        add_mech(buffer, &items, CKM_ECDSA);
-        add_mech(buffer, &items, CKM_ECDSA_SHA1);
+        add_mech(buffer, items, CKM_ECDSA);
+        add_mech(buffer, items, CKM_ECDSA_SHA1);
         break;
 
       case YH_ALGO_EC_ECDSA_SHA256:
-        add_mech(buffer, &items, CKM_ECDSA);
-        add_mech(buffer, &items, CKM_ECDSA_SHA256);
+        add_mech(buffer, items, CKM_ECDSA);
+        add_mech(buffer, items, CKM_ECDSA_SHA256);
         break;
 
       case YH_ALGO_EC_ECDSA_SHA384:
-        add_mech(buffer, &items, CKM_ECDSA);
-        add_mech(buffer, &items, CKM_ECDSA_SHA384);
+        add_mech(buffer, items, CKM_ECDSA);
+        add_mech(buffer, items, CKM_ECDSA_SHA384);
         break;
 
       case YH_ALGO_EC_ECDSA_SHA512:
-        add_mech(buffer, &items, CKM_ECDSA);
-        add_mech(buffer, &items, CKM_ECDSA_SHA512);
+        add_mech(buffer, items, CKM_ECDSA);
+        add_mech(buffer, items, CKM_ECDSA_SHA512);
         break;
 
       case YH_ALGO_EC_ECDH:
-        add_mech(buffer, &items, CKM_ECDH1_DERIVE);
+        add_mech(buffer, items, CKM_ECDH1_DERIVE);
+        break;
+
+      case YH_ALGO_AES128:
+      case YH_ALGO_AES192:
+      case YH_ALGO_AES256:
+        add_mech(buffer, items, CKM_AES_KEY_GEN);
+        break;
+
+      case YH_ALGO_AES_ECB:
+        add_mech(buffer, items, CKM_AES_ECB);
+        break;
+
+      case YH_ALGO_AES_CBC:
+        add_mech(buffer, items, CKM_AES_CBC);
         break;
 
       case YH_ALGO_RSA_OAEP_SHA1:
       case YH_ALGO_RSA_OAEP_SHA256:
       case YH_ALGO_RSA_OAEP_SHA384:
       case YH_ALGO_RSA_OAEP_SHA512:
-        add_mech(buffer, &items, CKM_RSA_PKCS_OAEP);
+        add_mech(buffer, items, CKM_RSA_PKCS_OAEP);
         break;
 
       case YH_ALGO_AES128_CCM_WRAP:
       case YH_ALGO_AES192_CCM_WRAP:
       case YH_ALGO_AES256_CCM_WRAP:
-        add_mech(buffer, &items, CKM_YUBICO_AES_CCM_WRAP);
-        add_mech(buffer, &items, CKM_GENERIC_SECRET_KEY_GEN);
+        add_mech(buffer, items, CKM_YUBICO_AES_CCM_WRAP);
+        add_mech(buffer, items, CKM_GENERIC_SECRET_KEY_GEN);
         break;
 
         // NOTE: there are algorithms don't have corresponding mechanisms
@@ -220,22 +237,12 @@ CK_RV get_mechanism_list(yubihsm_pkcs11_slot *slot,
   }
 
   // NOTE(adma): manually add digest mechanisms
-  add_mech(buffer, &items, CKM_SHA_1);
-  add_mech(buffer, &items, CKM_SHA256);
-  add_mech(buffer, &items, CKM_SHA384);
-  add_mech(buffer, &items, CKM_SHA512);
+  add_mech(buffer, items, CKM_SHA_1);
+  add_mech(buffer, items, CKM_SHA256);
+  add_mech(buffer, items, CKM_SHA384);
+  add_mech(buffer, items, CKM_SHA512);
 
-  if (pMechanismList != NULL) {
-    if (items > *count) {
-      *count = items;
-
-      return CKR_BUFFER_TOO_SMALL;
-    }
-
-    memcpy(pMechanismList, buffer, sizeof(CK_MECHANISM_TYPE) * items);
-  }
-
-  *count = items;
+  qsort(buffer, *items, sizeof(buffer[0]), compare_mech);
 
   return CKR_OK;
 }
@@ -318,6 +325,40 @@ static void find_minmax_ec_key_length_in_bits(yh_algorithm *algorithms,
   }
 }
 
+static void find_minmax_aes_key_length_in_bits(yh_algorithm *algorithms,
+                                               size_t n_algorithms,
+                                               CK_ULONG *min, CK_ULONG *max) {
+
+  *min = 0;
+  *max = 0;
+
+  for (size_t i = 0; i < n_algorithms; i++) {
+    CK_ULONG size;
+    switch (algorithms[i]) {
+      case YH_ALGO_AES128:
+        size = 128;
+        break;
+      case YH_ALGO_AES192:
+        size = 192;
+        break;
+      case YH_ALGO_AES256:
+        size = 256;
+        break;
+      default:
+        size = 0;
+    }
+    if (size == 0) {
+      continue;
+    }
+    if (*min == 0 || *min > size) {
+      *min = size;
+    }
+    if (size > *max) {
+      *max = size;
+    }
+  }
+}
+
 bool get_mechanism_info(yubihsm_pkcs11_slot *slot, CK_MECHANISM_TYPE type,
                         CK_MECHANISM_INFO_PTR pInfo) {
 
@@ -377,6 +418,21 @@ bool get_mechanism_info(yubihsm_pkcs11_slot *slot, CK_MECHANISM_TYPE type,
                                         &pInfo->ulMaxKeySize);
       pInfo->flags = CKF_HW | CKF_GENERATE_KEY_PAIR | CKF_EC_F_P |
                      CKF_EC_NAMEDCURVE | CKF_EC_UNCOMPRESS;
+      break;
+
+    case CKM_AES_KEY_GEN:
+      find_minmax_aes_key_length_in_bits(slot->algorithms, slot->n_algorithms,
+                                         &pInfo->ulMinKeySize,
+                                         &pInfo->ulMaxKeySize);
+      pInfo->flags = CKF_HW | CKF_GENERATE;
+      break;
+
+    case CKM_AES_ECB:
+    case CKM_AES_CBC:
+      find_minmax_aes_key_length_in_bits(slot->algorithms, slot->n_algorithms,
+                                         &pInfo->ulMinKeySize,
+                                         &pInfo->ulMaxKeySize);
+      pInfo->flags = CKF_HW | CKF_ENCRYPT | CKF_DECRYPT;
       break;
 
     case CKM_SHA_1_HMAC:
@@ -1660,24 +1716,7 @@ bool check_decrypt_mechanism(yubihsm_pkcs11_slot *slot,
 bool check_encrypt_mechanism(yubihsm_pkcs11_slot *slot,
                              CK_MECHANISM_PTR pMechanism) {
 
-  CK_MECHANISM_TYPE mechanisms[128];
-  CK_ULONG count = 128;
-
-  if (pMechanism->mechanism != CKM_YUBICO_AES_CCM_WRAP) {
-    return false;
-  }
-
-  if (get_mechanism_list(slot, mechanisms, &count) != CKR_OK) {
-    return false;
-  }
-
-  for (CK_ULONG i = 0; i < count; i++) {
-    if (pMechanism->mechanism == mechanisms[i]) {
-      return true;
-    }
-  }
-
-  return false;
+  return check_decrypt_mechanism(slot, pMechanism);
 }
 
 bool check_digest_mechanism(CK_MECHANISM_PTR pMechanism) {

@@ -735,7 +735,10 @@ CK_DEFINE_FUNCTION(CK_RV, C_GetMechanismList)
     return CKR_SLOT_ID_INVALID;
   }
 
-  CK_RV rv = get_mechanism_list(slot, pMechanismList, pulCount);
+  CK_ULONG size = *pulCount;
+  CK_MECHANISM_TYPE buffer[128];
+
+  CK_RV rv = get_mechanism_list(slot, buffer, pulCount);
   if (rv == CKR_BUFFER_TOO_SMALL) {
     DBG_ERR("Mechanism buffer too small");
     goto c_gml_out;
@@ -744,7 +747,17 @@ CK_DEFINE_FUNCTION(CK_RV, C_GetMechanismList)
     goto c_gml_out;
   }
 
-  DBG_INFO("Found %lu mechanisms", *pulCount);
+  DBG_INFO("Found %lu mechanisms for %p size %lu", *pulCount,
+           (void *) pMechanismList, size);
+
+  if (pMechanismList) {
+    if (*pulCount > size) {
+      DBG_ERR("Mechanism buffer too small");
+      rv = CKR_BUFFER_TOO_SMALL;
+      goto c_gml_out;
+    }
+    memcpy(pMechanismList, buffer, *pulCount * sizeof(CK_MECHANISM_TYPE));
+  }
 
   DOUT;
 
