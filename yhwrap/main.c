@@ -204,7 +204,7 @@ int main(int argc, char *argv[]) {
   struct gengetopt_args_info args_info;
 
   int rc = EXIT_FAILURE;
-  yh_rc yhrc;
+  yh_rc yhrc = 0;
 
   FILE *input_file = NULL;
   FILE *output_file = NULL;
@@ -225,7 +225,7 @@ int main(int argc, char *argv[]) {
     goto main_exit;
   }
 
-  yh_algorithm algorithm;
+  yh_algorithm algorithm = 0;
   yhrc = yh_string_to_algo(args_info.algorithm_arg, &algorithm);
   if (yhrc != YHR_SUCCESS) {
     fprintf(stderr, "Unable to parse algorithm: %s\n", yh_strerror(yhrc));
@@ -239,7 +239,7 @@ int main(int argc, char *argv[]) {
     goto main_exit;
   }
 
-  uint16_t domains;
+  uint16_t domains = 0;
   yhrc = yh_string_to_domains(args_info.domains_arg, &domains);
   if (yhrc != YHR_SUCCESS) {
     fprintf(stderr, "Unable to parse domains: %s\n", yh_strerror(yhrc));
@@ -258,7 +258,7 @@ int main(int argc, char *argv[]) {
   }
   memcpy(label, args_info.label_arg, label_len);
 
-  yh_object_type type;
+  yh_object_type type = 0;
   if (algo2type(algorithm, &type) == false) {
     fprintf(stderr, "Invalid algorithm\n");
     goto main_exit;
@@ -314,7 +314,7 @@ int main(int argc, char *argv[]) {
         password[password_len] = '\0';
       }
 
-      uint8_t key[YH_KEY_LEN * 2];
+      uint8_t key[YH_KEY_LEN * 2] = {0};
       int ret =
         PKCS5_PBKDF2_HMAC((const char *) password, password_len,
                           (uint8_t *) YH_DEFAULT_SALT, strlen(YH_DEFAULT_SALT),
@@ -346,7 +346,7 @@ int main(int argc, char *argv[]) {
     } break;
 
     case YH_ASYMMETRIC_KEY: {
-      yh_algorithm parsed_algorithm;
+      yh_algorithm parsed_algorithm = 0;
       if (read_file(input_file, wrap_object.body, &wrap_object_len) == false) {
         fprintf(stderr, "Unable to read input file\n");
         goto main_exit;
@@ -390,13 +390,13 @@ int main(int argc, char *argv[]) {
     goto main_exit;
   }
 
-  uint8_t wrapkey_buf[WRAPKEY_BUFSIZE];
+  uint8_t wrapkey_buf[WRAPKEY_BUFSIZE] = {0};
   size_t wrapkey_buf_len = sizeof(wrapkey_buf);
   if (read_file(wrapkey_file, wrapkey_buf, &wrapkey_buf_len) == false) {
     fprintf(stderr, "Unable to read wrapkey file\n");
   }
 
-  yh_algorithm wrapkey_algorithm;
+  yh_algorithm wrapkey_algorithm = 0;
   switch (wrapkey_buf_len) {
     case 16:
       wrapkey_algorithm = YH_ALGO_AES128_CCM_WRAP;
