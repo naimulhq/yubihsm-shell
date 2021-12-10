@@ -41,7 +41,7 @@ jobs:
         run: |
           set -x
           sudo apt -q update
-          sudo apt install libpcsclite-dev gengetopt help2man libedit-dev libssl-dev libusb-1.0-0-dev cmake
+          sudo apt install libpcsclite-dev gengetopt help2man libedit-dev libssl-dev libcurl libusb-1.0-0-dev cmake
 
           cd $GITHUB_WORKSPACE
           mkdir openssl_3.0.0_installed
@@ -58,7 +58,7 @@ jobs:
 
           pwd
           ls $GITHUB_WORKSPACE/openssl_3.0.0_installed
-          export PKG_CONFIG_PATH=$GITHUB_WORKSPACE/openssl_3.0.0_installed/lib/pkgconfig
+          export PKG_CONFIG_PATH=$GITHUB_WORKSPACE/openssl_3.0.0_installed/lib64/pkgconfig
           mkdir build; cd build
           cmake ..
           make
