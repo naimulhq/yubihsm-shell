@@ -1,4 +1,4 @@
-name: Release binaries
+name: Build with OpenSSL 3
 # This machine tests building the software on a both 32 and 64 Windows architecture.
 
 on: [push]
@@ -48,7 +48,7 @@ jobs:
           curl -L -O "https://www.openssl.org/source/openssl-3.0.0.tar.gz"
           tar xfz openssl-3.0.0.tar.gz
           cd openssl-3.0.0
-          ./Configure shared no-ssl2 no-ssl3 --prefix=openssl_3.0.0_installed
+          ./Configure shared no-ssl2 no-ssl3 --prefix=$GITHUB_WORKSPACE/openssl_3.0.0_installed
           make all install_sw VERSION="3.0.0"
 
       - name: Build release package
