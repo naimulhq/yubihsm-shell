@@ -48,7 +48,6 @@ jobs:
           set -e -o pipefail
           set -x
 
-#          brew install cmake pkg-config gengetopt help2man openssl
           brew install cmake gengetopt help2man libedit libusb openssl pkg-config swig truncate
 
           ls -l /usr/local/opt/openssl
