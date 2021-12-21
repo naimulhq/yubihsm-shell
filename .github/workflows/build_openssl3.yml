@@ -15,7 +15,7 @@ jobs:
         run: |
           set -x
           sudo apt -q update
-          sudo apt install libpcsclite-dev gengetopt help2man libedit-dev libssl-dev libcurl4-openssl-dev libusb-1.0-0-dev cmake
+          sudo apt install libpcsclite-dev gengetopt help2man libedit-dev libssl-dev libcurl4-openssl-dev libusb-1.0-0-dev cmake perl
 
           cd $GITHUB_WORKSPACE
           mkdir openssl_3.0.0_installed
@@ -30,8 +30,6 @@ jobs:
           set -e -o pipefail
           set -x
 
-          pwd
-          ls $GITHUB_WORKSPACE/openssl_3.0.0_installed
           export PKG_CONFIG_PATH=$GITHUB_WORKSPACE/openssl_3.0.0_installed/lib64/pkgconfig
           mkdir build; cd build
           cmake ..
@@ -51,15 +49,26 @@ jobs:
           set -x
 
           brew install cmake pkg-config gengetopt help2man openssl
-          ls /usr/local/opt
-          ls /usr/local/opt/openssl
-          ls /usr/local/opt/openssl/lib
 
-          export PKG_CONFIG_PATH=/usr/local/opt/openssl/lib/pkgconfig
+          ls -l /usr/local/opt/openssl
 
-          openssl version
+          export PKG_CONFIG_PATH=/usr/local/opt/openssl@3/lib/pkgconfig
 
           pwd
           mkdir build; cd build
           cmake ..
           make
+
+      - name: Test
+        run: |
+          wget -q https://github.com/square/ghostunnel/releases/download/v1.3.1/ghostunnel-v1.3.1-$(uname -s | tr '[:upper:]' '[:lower:]')-amd64-with-pkcs11 -O /tmp/ghostunnel
+          chmod +x /tmp/ghostunnel
+          openssl aes-256-cbc -k "$tlspwd" -md sha256 -in ./.ci/client-combined.pem.enc -out ./.ci/client-combined.pem -d
+          /tmp/ghostunnel client --listen localhost:12345 --target hsm-connector01.sthlm.in.yubico.org:8443 --keystore ./.ci/client-combined.pem --cacert ./.ci/server-crt.pem 2>/dev/null &
+          sleep 3
+          DEFAULT_CONNECTOR_URL=$(curl -s http://localhost:12345/dispatcher/request)
+          test -n "$DEFAULT_CONNECTOR_URL" || (echo "Unable to obtain a connector URL, aborting"; exit 1)
+          echo $DEFAULT_CONNECTOR_URL
+          echo "DEFAULT_CONNECTOR_URL=$DEFAULT_CONNECTOR_URL" >> $GITHUB_ENV
+
+          ./src/yubihsm-shell --connector "$DEFAULT_CONNECTOR_URL" -p password -a reset
