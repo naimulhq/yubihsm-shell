@@ -59,6 +59,8 @@ jobs:
           ls /usr/local/opt/openssl
           ls /usr/local/opt/openssl/lib
 
+          export PKG_CONFIG_PATH=/usr/local/opt/openssl/lib/pkgconfig
+
           openssl version
 
           pwd
