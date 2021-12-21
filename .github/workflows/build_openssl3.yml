@@ -50,7 +50,7 @@ jobs:
           set -e -o pipefail
           set -x
 
-          brew install openssl
+          brew install cmake pkg-config gengetopt help2man openssl
           ls /usr/local/opt
           ls /usr/local/opt/openssl
           ls /usr/local/opt/openssl/lib
