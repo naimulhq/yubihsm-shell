@@ -5,32 +5,6 @@ on: [push]
 
 jobs:
 
-  source:
-    name: Build dist with Linux
-    runs-on: ubuntu-latest
-    env:
-      VERSION: 2.3.0
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-      - name: Install prerequisites
-        run: |
-          set -x
-          sudo apt -q update
-          sudo apt install libpcsclite-dev gengetopt help2man libedit-dev libcurl4-openssl-dev libssl-dev libusb-1.0-0-dev
-      - name: Create tar.gz
-        run: |
-          set -x
-          ./resources/make_src_dist.sh $VERSION
-          cd ..
-          mkdir artifact
-          mv $GITHUB_WORKSPACE/yubihsm-shell-$VERSION.tar.gz artifact/
-      - name: Upload artifact
-        uses: actions/upload-artifact@v1
-        with:
-          name: yubihsm-shell-src
-          path: ../artifact
-
   ubuntu2004:
     name: Build Ubuntu 20.04 OpenSSL 3.0
     runs-on: ubuntu-20.04
@@ -63,8 +37,31 @@ jobs:
           cmake ..
           make
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: yubihsm-shell-ubuntu2004-amd64
-          path: artifact
+
+  macos:
+    name: Build MacOS amd64 release
+    needs: source
+    runs-on: macos-10.15
+    env:
+      VERSION: 2.3.0
+      SO_VERSION: 2
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: Build
+        run: |
+          set -e -o pipefail
+          set -x
+
+          brew install openssl
+          ls /usr/local/opt
+          ls /usr/local/opt/openssl
+          ls /usr/local/opt/openssl/lib
+
+          openssl version
+
+          pwd
+          mkdir build; cd build
+          cmake ..
+          make
