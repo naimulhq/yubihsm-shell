@@ -39,12 +39,8 @@ jobs:
 
 
   macos:
-    name: Build MacOS amd64 release
-    needs: source
+    name: Build MacOS
     runs-on: macos-10.15
-    env:
-      VERSION: 2.3.0
-      SO_VERSION: 2
     steps:
       - name: checkout
         uses: actions/checkout@v2
